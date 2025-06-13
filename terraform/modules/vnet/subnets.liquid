@@ -1,0 +1,27 @@
+resource "azurerm_subnet" "public" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-public"
+  resource_group_name = {{ resource_group_name }}
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes    = [cidrsubnet(element({{ vnet_address_space }}, 0), {{ subnet_prefix_length }}, {{ public_subnet_offset }})]
+}
+
+# Kubernetes master subnet (new subnet for master nodes)
+resource "azurerm_subnet" "k8s_private_subnet" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-k8s-master"
+  resource_group_name = {{ resource_group_name }}
+  virtual_network_name = azurerm_virtual_network.this.name
+  address_prefixes    = [cidrsubnet(element({{ vnet_address_space }}, 0), {{ subnet_prefix_length }}, {{ k8s_private_subnet_offset }})]
+}
+
+resource "azurerm_subnet" "app_gateway_subnet" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-app-gateway-subnet"
+  resource_group_name = {{ resource_group_name }}
+  virtual_network_name = azurerm_virtual_network.this.name
+
+  # Use an unused subnet index for the app gateway subnet.
+  address_prefixes    = [cidrsubnet(
+    element({{ vnet_address_space }}, 0),
+    {{ subnet_prefix_length }},
+    {{ app_gateway_subnet_offset }}
+  )]
+}

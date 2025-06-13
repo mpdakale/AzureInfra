@@ -1,0 +1,46 @@
+# Get Azure AD Client Info
+data "azuread_client_config" "current" {}
+
+data "azurerm_client_config" "current" {}
+
+# Define Service Principal
+resource "azuread_application" "this" {
+  display_name = "${{{ project_name }}}-sp-for-acr"
+  owners       = [data.azuread_client_config.current.object_id]
+}
+
+resource "azuread_service_principal" "this" {
+  client_id = azuread_application.this.client_id
+  owners    = [data.azuread_client_config.current.object_id]
+}
+
+resource "azuread_service_principal_password" "this" {
+  service_principal_id = azuread_service_principal.this.object_id
+  end_date_relative    = "17250h"
+}
+
+# Define a Custom Role with Permissions for All ACR Repositories
+resource "azurerm_role_definition" "acr_custom_role" {
+  name        = "${{{ project_name }}}-AcrPull-role"
+  scope       = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${{{ resource_group_name }}}"
+  description = "Custom role for managing all ACR repositories with read, write, and push permissions."
+
+  permissions {
+    actions = [
+      "Microsoft.ContainerRegistry/registries/pull/read",
+      "Microsoft.ContainerRegistry/registries/push/write"
+    ]
+    not_actions = []
+  }
+
+  assignable_scopes = ["/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${{{ resource_group_name }}}"]
+}
+
+# Assign Custom Role to Service Principal for ACR Management 
+resource "azurerm_role_assignment" "acr_role_assignment" {
+  for_each             = {{ acr_repo_ids }}
+  principal_id         = azuread_service_principal.this.id
+  role_definition_id   = azurerm_role_definition.acr_custom_role.role_definition_resource_id
+  scope                = each.value
+  depends_on           = [ azurerm_role_definition.acr_custom_role ]
+}

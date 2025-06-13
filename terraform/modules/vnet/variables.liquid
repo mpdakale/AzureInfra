@@ -1,0 +1,89 @@
+variable "project_name" {
+  description = "The project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment (e.g., dev, qa, prod)"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure location/region"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to deploy resources into."
+  type        = list(string)
+}
+
+variable "vnet_address_space" {
+  description = "The address space for the VNet"
+  type        = list(string)
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+}
+
+variable "subnet_prefix_length" {
+  description = "The prefix length for subnets"
+  type        = number
+}
+
+variable "k8s_private_subnet_offset" {
+  description = "Offset for private subnets in the address space"
+  type        = number
+}
+
+variable "private_subnet_offset" {
+  description = "Offset for private subnets in the address space"
+  type        = number
+}
+
+variable "public_subnet_offset" {
+  description = "Offset for public subnets in the address space"
+  type        = number
+}
+
+variable "public_ip_allocation_method" {
+  description = "The allocation method for public IPs"
+  type        = string
+}
+
+variable "public_ip_sku" {
+  description = "The SKU for public IPs"
+  type        = string
+}
+
+variable "k8s_vm_nsg_id" {
+  description = "ID of the NSG to be attached to the private subnet"
+  type        = string
+}
+
+variable "bastion_nsg_id" {
+  description = "ID of the NSG to be attached to the public subnet"
+  type        = string
+}
+
+variable "app_gateway_subnet_offset" {
+  description = "Offset for the Application Gateway subnet index to ensure no overlap."
+  type        = number
+}
+
+variable "app_gateway_nsg_id" {
+  description = "ID of the NSG to be attached to the Applicationb gateway subnet"
+  type        = string
+}
+
+variable "k8s_asg_id" {
+  description = "ID of the ASG to be attached to the private subnet"
+  type        = string
+}

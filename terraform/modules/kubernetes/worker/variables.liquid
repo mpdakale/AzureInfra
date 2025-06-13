@@ -1,0 +1,107 @@
+variable "project_name" {
+  description = "The name of the project."
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment (e.g. dev, staging, prod)."
+  type        = string
+}
+
+variable "location" {
+  description = "Azure region where resources will be deployed."
+  type        = string
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to deploy resources into."
+  type        = list(string)
+}
+
+variable "resource_group_name" {
+  description = "Name of the resource group."
+  type        = string
+}
+
+variable "k8s_worker_os_disk_caching" {
+  description = "Caching type for the OS disk."
+  type        = string
+}
+
+variable "k8s_worker_os_disk_storage_account_type" {
+  description = "Storage account type for OS disk."
+  type        = string
+}
+
+variable "k8s_worker_os_disk_size" {
+  description = "Size of the OS disk in GB."
+  type        = number
+}
+
+variable "k8s_worker_image_publisher" {
+  description = "Publisher of the worker VM image."
+  type        = string
+}
+
+variable "k8s_worker_image_offer" {
+  description = "Offer of the worker VM image."
+  type        = string
+}
+
+variable "k8s_worker_image_sku" {
+  description = "SKU of the worker VM image."
+  type        = string
+}
+
+variable "k8s_worker_vm_size" {
+  description = "Size of the worker node."
+  type        = string
+}
+
+variable "k8s_worker_image_version" {
+  description = "Version of the worker VM image."
+  type        = string
+}
+
+variable "k8s_worker_admin_username" {
+  description = "Admin username for SSH access."
+  type        = string
+}
+
+variable "k8s_worker_public_key" {
+  description = "Public SSH key for the worker VM."
+}
+
+variable "k8s_worker_instance_count" {
+  description = "Number of initial instances in the VM scale set."
+  type        = number
+}
+
+variable "k8s_worker_max_instance_count" {
+  description = "Maximum number of instances in the VM scale set."
+  type        = number
+}
+
+variable "k8s_worker_subnet_ids" {
+  description = "List of subnet IDs where Kubernetes worker VMs will be deployed."
+  type        = list(string)
+}
+
+variable "k8s_vm_nsg_id" {
+  description = "ID of the Network Security Group (NSG) associated with Kubernetes VMs."
+  type        = string
+}
+
+variable "application_gateway_backend_address_pool_ids" {
+  description = "List of Backend Address Pool IDs for the Application Gateway."
+  type        = list(string)
+}
+
+variable "k8s_application_security_group_ids" {
+  description = "List of Application Security Group IDs associated with Kubernetes VMs."
+}
+
+variable "common_resource_group_name" {
+  description = "The name of the common resource group where acr repos are created."
+  type        = string
+}

@@ -1,0 +1,11 @@
+# Output the public key
+output "key_data" {
+  value     = tls_private_key.bastion_ssh_key.public_key_openssh
+  sensitive = true # Marking as sensitive to avoid exposing in logs
+}
+
+# (Optional) Handle the private key securely
+output "private_key_data" {
+  value     = tls_private_key.bastion_ssh_key.private_key_pem
+  sensitive = true
+}

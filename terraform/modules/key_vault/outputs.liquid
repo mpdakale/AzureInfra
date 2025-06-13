@@ -1,0 +1,15 @@
+output "kv_access_identity" {
+  description = "The identity ID of the Key Vault"
+  value = azurerm_user_assigned_identity.base.id
+}
+
+output "key_vault_id" {
+  description = "The ID of the Key Vault"
+  value       = azurerm_key_vault.kv.id
+}
+
+# Output block to show the certificate's secret ID
+output "certificate_secret_id" {
+  description = "The Secret ID of the certificate in Azure Key Vault"
+  value       = azurerm_key_vault_certificate.ssl.secret_id
+}

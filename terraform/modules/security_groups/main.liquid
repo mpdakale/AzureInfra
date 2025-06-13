@@ -1,0 +1,123 @@
+resource "azurerm_application_security_group" "bastion_asg" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-bastion-asg"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+}
+
+resource "azurerm_application_security_group" "vm_k8s_asg" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-k8s-asg"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+}
+
+resource "azurerm_application_security_group" "app_gateway_asg" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-app-gateway-asg"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+}
+
+
+resource "azurerm_network_security_group" "k8s_vm_sg" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-k8s-vm-nsg"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+  tags = merge(
+    {
+      "Name" = "K8s VM NSG"
+    },
+    {{ tags }}
+  )
+
+  security_rule {
+    name                                       = "AllowAllFromAppGateway"
+    priority                                   = 100
+    direction                                  = "Inbound"
+    access                                     = "Allow"
+    protocol                                   = "*"
+    source_port_range                          = "*"
+    destination_port_range                     = "*"
+    source_application_security_group_ids      = [azurerm_application_security_group.app_gateway_asg.id]
+    destination_application_security_group_ids = [azurerm_application_security_group.vm_k8s_asg.id]
+  }
+
+  security_rule {
+    name                                       = "AllowSSHFromBastion"
+    priority                                   = 101
+    direction                                  = "Inbound"
+    access                                     = "Allow"
+    protocol                                   = "Tcp"
+    source_port_range                          = "*"
+    destination_port_range                     = "22"
+    source_application_security_group_ids      = [azurerm_application_security_group.bastion_asg.id]
+    destination_application_security_group_ids = [azurerm_application_security_group.vm_k8s_asg.id]
+  }
+}
+
+resource "azurerm_network_security_group" "bastion_nsg" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-bastion-nsg"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+  tags = merge(
+    {
+      "Name" = "Bastion NSG"
+    },
+    {{ tags }}
+  )
+
+  security_rule {
+    name                                       = "AllowSSHFromSpecificIPs"
+    priority                                   = 100
+    direction                                  = "Inbound"
+    access                                     = "Allow"
+    protocol                                   = "Tcp"
+    source_port_range                          = "*"
+    destination_port_range                     = "22"
+    source_address_prefixes                    = {{ source_bastion_ip }}
+    destination_application_security_group_ids = [azurerm_application_security_group.bastion_asg.id]
+  }
+}
+
+resource "azurerm_network_security_group" "app_gateway_nsg" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-app-gateway-nsg"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+  tags                = {{ tags }}
+
+  # Allow HTTP and HTTPS traffic
+  security_rule {
+    name                       = "allow-http"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["80"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  security_rule {
+    name                       = "allow-https"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["443"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  # Allow Application Gateway V2 specific ports
+  security_rule {
+    name                       = "allow-appgw-ports"
+    priority                   = 102
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_ranges    = ["65200-65535"]
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+}

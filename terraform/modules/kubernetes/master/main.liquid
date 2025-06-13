@@ -1,0 +1,34 @@
+# k8s_master Host Virtual Machine
+resource "azurerm_linux_virtual_machine" "k8s_master_vm" {
+  name                  = "${{{ project_name }}}-${{{ environment }}}-k8s-master"
+  location              = {{ location }}
+  resource_group_name   = {{ resource_group_name }}
+  network_interface_ids = {{ k8s_master_nic_id }}
+  size                  = {{ k8s_master_vm_size }}
+
+  os_disk {
+    name                 = "${{{ project_name }}}-${{{ environment }}}-k8s-master-vm-os-disk"
+    caching              = {{ k8s_master_os_disk_caching }}
+    storage_account_type = {{ k8s_master_os_disk_storage_account_type }}
+    disk_size_gb         = {{ k8s_master_os_disk_size }}
+  }
+
+  source_image_reference {
+    publisher = {{ k8s_master_image_publisher }}
+    offer     = {{ k8s_master_image_offer }}
+    sku       = {{ k8s_master_image_sku }}
+    version   = {{ k8s_master_image_version }}
+  }
+
+  computer_name  = "k8s-master-${{{ environment }}}"
+  admin_username = {{ k8s_master_admin_username }}
+
+  admin_ssh_key {
+    username   = {{ k8s_master_admin_username }}
+    public_key = {{ k8s_public_key }}
+  }
+  depends_on = [
+    {{ k8s_master_nic_id }},
+    {{ k8s_master_private_nic_association_id }}
+  ]
+}

@@ -1,0 +1,9 @@
+resource "azurerm_container_registry" "this" {
+  for_each            = toset({{ acr_repo_names }})
+  name                = each.key
+  resource_group_name = {{ resource_group_name }}
+  location            = {{ location }}
+  sku                 = "Basic"
+  admin_enabled       = false
+  tags                = {{ tags }}
+}

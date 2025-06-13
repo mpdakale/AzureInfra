@@ -1,0 +1,27 @@
+####################### common variables #######################
+
+variable "project_name" {
+  description = "The project name"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure location/region"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+}
+
+####################### acr variables #######################
+variable "acr_repo_names" {
+  description = "List of repository names for ACR."
+  type        = list(string)
+}

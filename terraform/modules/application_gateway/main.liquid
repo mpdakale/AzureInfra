@@ -1,0 +1,165 @@
+# Define the public IP for the Application Gateway
+resource "azurerm_public_ip" "app_gateway_ip" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-appgateway-pip"
+  resource_group_name = {{ resource_group_name }}
+  location            = {{ location }}
+  allocation_method   = {{ public_ip_allocation_method }}
+  sku                 = {{ public_ip_sku }}
+  tags                = {{ tags }}
+  zones               = {{ availability_zones }}
+  lifecycle {
+    create_before_destroy = true
+  }
+}
+
+# Define local variables for naming conventions
+locals {
+  prefix                           = "${{{ project_name }}}-${{{ environment }}}"
+  frontend_port_name_http          = "${local.prefix}-http"
+  frontend_port_name_https         = "${local.prefix}-https"
+  frontend_ip_configuration_name   = "${local.prefix}-fip"
+  backend_address_pool_name        = "${local.prefix}-backend-pool"
+  backend_http_settings_name       = "${local.prefix}-backend-http"
+  listener_name                    = "${local.prefix}-http-lstn"
+  https_listener_name              = "${local.prefix}-https-lstn"
+  request_routing_rule_name_http   = "${local.prefix}-http"
+  request_routing_rule_name_https  = "${local.prefix}-https"
+  redirect_configuration_name      = "${local.prefix}-redirect-cfg"
+  autoscale_configuration_name     = "${local.prefix}-autoscale"
+  gateway_config_name              = "${local.prefix}-gatewayconf"
+  probe_name                       = "${local.prefix}-probe"
+  ssl_cert_name                    = "${local.prefix}-sslcert"
+}
+
+# Define the Application Gateway
+resource "azurerm_application_gateway" "main" {
+  name                = "${local.prefix}-appgw"
+  resource_group_name = {{ resource_group_name }}
+  location            = {{ location }}
+  zones               = {{ availability_zones }}
+  enable_http2        = true
+
+  ssl_policy {
+    policy_name = "AppGwSslPolicy20220101S"
+    policy_type = "Predefined"
+  } 
+  
+  identity {
+    type = "UserAssigned"
+    identity_ids = [ {{ appgateway_kv_identity_id }} ]
+  }
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+  }
+
+  gateway_ip_configuration {
+    name      = local.gateway_config_name
+    subnet_id = {{ app_gateway_subnet_id }}
+  }
+
+  frontend_ip_configuration {
+    name                 = local.frontend_ip_configuration_name
+    public_ip_address_id = azurerm_public_ip.app_gateway_ip.id
+  }
+
+  frontend_port {
+    name = local.frontend_port_name_http
+    port = 80
+  }
+
+  frontend_port {
+    name = "${local.frontend_port_name_https}"
+    port = 443
+  }
+
+  backend_address_pool {
+    name = local.backend_address_pool_name
+  }
+
+  backend_http_settings {
+    name                  = local.backend_http_settings_name
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 20
+    probe_name            = local.probe_name
+    host_name             = {{ domain_name }}
+  }
+
+  http_listener {
+    name                           = local.listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = local.frontend_port_name_http
+    protocol                       = "Http"
+    host_name                      = {{ domain_name }}
+  }
+
+  http_listener {
+    name                           = local.https_listener_name
+    frontend_ip_configuration_name = local.frontend_ip_configuration_name
+    frontend_port_name             = "${local.frontend_port_name_https}"
+    protocol                       = "Https"
+    host_name                      = {{ domain_name }}
+    ssl_certificate_name           = local.ssl_cert_name 
+  }
+
+  probe {
+    name                = local.probe_name
+    protocol            = "Http"
+    path                = "/"
+    port                = 80
+    interval            = 30
+    timeout             = 20
+    unhealthy_threshold = 3
+    pick_host_name_from_backend_http_settings = true
+    match {
+      status_code = [
+        "200"
+    ]
+  }
+}
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name_http
+    rule_type                  = "Basic"
+    http_listener_name         = local.listener_name
+    redirect_configuration_name = local.redirect_configuration_name
+    priority                   = 1
+  }
+
+  request_routing_rule {
+    name                       = local.request_routing_rule_name_https
+    rule_type                  = "Basic"
+    http_listener_name         = local.https_listener_name
+    backend_address_pool_name  = local.backend_address_pool_name
+    backend_http_settings_name = local.backend_http_settings_name
+    priority                   = 2
+  }
+
+  redirect_configuration {
+    name                 = local.redirect_configuration_name
+    redirect_type        = "Permanent"
+    target_listener_name = local.https_listener_name
+    include_path         = true
+    include_query_string = true
+  }
+
+  autoscale_configuration {
+    min_capacity   = 2
+    max_capacity   = 10
+  }
+
+  ssl_certificate {
+    name               = local.ssl_cert_name
+    key_vault_secret_id = {{ azurerm_key_vault_certificate_secret_id }}
+  }
+
+  waf_configuration {
+    enabled          = true
+    firewall_mode    = "Prevention" # Or Detection, depending on your needs
+    rule_set_type    = "OWASP"
+    rule_set_version = "3.2"
+  }
+}

@@ -1,0 +1,15 @@
+# module "azure_ad" {
+#   source              = "../../modules/azure_ad"
+#   project_name        = {{ project_name }}
+#   resource_group_name = {{ resource_group_name }}
+#   acr_repo_ids        = {{ module.acr.acr_repo_ids }}
+# }
+
+module "acr" {
+  source              = "../../modules/acr"
+  resource_group_name = {{ resource_group_name }}
+  location            = {{ location }}
+  project_name        = {{ project_name }}
+  acr_repo_names      = {{ acr_repo_names }}
+  tags                = {{ tags }}
+}

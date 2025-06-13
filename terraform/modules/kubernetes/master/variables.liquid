@@ -1,0 +1,78 @@
+variable "project_name" {
+  description = "The name of the project"
+  type        = string
+}
+
+variable "environment" {
+  description = "Environment for the deployment (e.g. dev, prod)"
+  type        = string
+}
+
+variable "location" {
+  description = "Azure region to deploy the resources"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "k8s_master_nic_id" {
+  description = "List of private NIC IDs to associate with the k8s master VM"
+  type        = list(string)
+}
+
+variable "k8s_master_vm_size" {
+  description = "Size of the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_os_disk_caching" {
+  description = "Caching mode for the OS disk of the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_os_disk_storage_account_type" {
+  description = "Storage account type for the OS disk of the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_os_disk_size" {
+  description = "Disk size (in GB) for the Kubernetes master VM OS disk"
+  type        = number
+}
+
+variable "k8s_master_image_publisher" {
+  description = "Publisher of the image to use for the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_image_offer" {
+  description = "Image offer to use for the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_image_sku" {
+  description = "Image SKU to use for the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_image_version" {
+  description = "Version of the image to use for the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_admin_username" {
+  description = "Admin username for the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_public_key" {
+  description = "Public SSH key for accessing the Kubernetes master VM"
+  type        = string
+}
+
+variable "k8s_master_private_nic_association_id" {
+  description = "List of private NIC associate IDs."
+}

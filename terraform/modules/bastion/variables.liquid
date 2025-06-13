@@ -1,0 +1,100 @@
+# Variables for resource group, location, and other necessary inputs
+variable "project_name" {
+  description = "The project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment (e.g., dev, qa, prod)"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the existing resource group."
+  type        = string
+}
+
+variable "location" {
+  description = "The location of the existing resources."
+  type        = string
+}
+
+variable "tags" {
+  description = "Tags to be applied to the ACR."
+  type        = map(string)
+  default     = {}
+}
+
+variable "bastion_subnet_id" {
+  description = "The ID of the existing subnet for the bastion host."
+  type        = string
+}
+
+variable "bastion_nsg_id" {
+  description = "The ID of the bastion host's network security group."
+  type        = string
+}
+
+variable "bastion_asg_id" {
+  description = "The ID of the bastion host's application security group."
+  type        = string
+}
+variable "bastion_admin_username" {
+  description = "The admin username for the bastion host VM."
+  type        = string
+}
+
+variable "bastion_vm_size" {
+  description = "The size of the virtual machine."
+  type        = string
+}
+
+variable "bastion_os_disk_size" {
+  description = "The size of the OS disk in GB."
+  type        = number
+}
+
+variable "image_publisher" {
+  description = "The publisher of the image."
+  type        = string
+}
+
+variable "image_offer" {
+  description = "The offer of the image."
+  type        = string
+}
+
+variable "image_sku" {
+  description = "The SKU of the image."
+  type        = string
+}
+
+variable "image_version" {
+  description = "The version of the image."
+  type        = string
+}
+
+variable "bastion_public_ip_allocation_method" {
+  type        = string
+  description = "The allocation method for the public IP address. Options are 'Static' or 'Dynamic'."
+}
+
+variable "bastion_public_ip_sku" {
+  type        = string
+  description = "The SKU for the public IP address. Options are 'Basic' or 'Standard'."
+}
+
+variable "bastion_private_ip_address_allocation" {
+  type        = string
+  description = "The allocation method for the private IP address. Options are 'Static' or 'Dynamic'."
+}
+
+variable "bastion_os_disk_caching" {
+  type        = string
+  description = "The caching setting for the OS disk. Options are 'None', 'ReadOnly', or 'ReadWrite'."
+}
+
+variable "bastion_os_disk_storage_account_type" {
+  type        = string
+  description = "The storage account type for the OS disk. Options are 'Standard_LRS', 'Standard_ZRS', 'Premium_LRS', or 'UltraSSD_LRS'."
+}

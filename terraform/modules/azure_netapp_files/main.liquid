@@ -1,0 +1,16 @@
+# Azure NetApp Files Account
+resource "azurerm_netapp_account" "main" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-azure-netapp-account"
+  resource_group_name = {{ resource_group_name }}
+  location            = {{ location }}
+}
+
+# Azure NetApp Files Pool
+resource "azurerm_netapp_pool" "main" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-azure-netapp-pool"
+  resource_group_name = {{ resource_group_name }}
+  account_name        = azurerm_netapp_account.main.name
+  location            = {{ location }}
+  service_level       = {{ netapp_pool_service_level }}
+  size_in_tb          = {{ netapp_pool_size }}
+}

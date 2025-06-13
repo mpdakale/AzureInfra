@@ -1,0 +1,34 @@
+output "vnet_id" {
+  description = "The ID of the virtual network"
+  value       = azurerm_virtual_network.this.id
+}
+
+output "vnet_name" {
+  description = "The name of the virtual network"
+  value       = azurerm_virtual_network.this.name
+}
+
+output "public_subnet_id" {
+  description = "The IDs of the public subnets"
+  value       = azurerm_subnet.public.id
+}
+
+output "k8s_private_subnet" {
+  description = "The IDs of the k8s subnets"
+  value       = azurerm_subnet.k8s_private_subnet.id
+}
+
+output "app_gateway_subnet_id" {
+  description = "The IDs of the app gateway subnet"
+  value       = azurerm_subnet.app_gateway_subnet.id
+}
+
+output "k8s_private_nic_id" {
+  description = "The IDs of the private network interfaces."
+  value       = azurerm_network_interface.private_nic.id
+}
+
+output "k8s_private_private_nic_association_id" {
+  description = "The association IDs of the private network interfaces with ASG."
+  value       = azurerm_network_interface_application_security_group_association.k8s_private_private_nic_asg.id
+}

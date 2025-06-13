@@ -1,0 +1,13 @@
+# Output ACR repository IDs
+output "acr_repo_ids" {
+  value = { for idx, r in azurerm_container_registry.this : "acr-repo-${idx}" => r.id }
+}
+
+output "acr_repo_names" {
+  value = {{ acr_repo_names }}
+}
+
+# Output ACR login servers
+output "acr_login_servers" {
+  value = [for r in azurerm_container_registry.this : r.login_server]
+}

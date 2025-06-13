@@ -1,0 +1,110 @@
+module "vnet" {
+  source                      = "../../modules/vnet"
+  project_name                = {{ project_name }}
+  environment                 = {{ environment }}
+  location                    = {{ location }}
+  resource_group_name         = {{ resource_group_name }}
+  availability_zones          = {{ availability_zones }}
+  vnet_address_space          = {{ vnet_address_space }}
+  private_subnet_offset       = {{ private_subnet_offset }}
+  public_ip_allocation_method = {{ public_ip_allocation_method }}
+  subnet_prefix_length        = {{ subnet_prefix_length }}
+  public_ip_sku               = {{ public_ip_sku }}
+  tags                        = {{ tags }}
+  bastion_nsg_id              = {{ module.nsg.bastion_nsg_id }}
+  app_gateway_subnet_offset   = {{ app_gateway_subnet_offset }}
+  app_gateway_nsg_id          = {{ module.nsg.app_gateway_nsg_id }}
+  k8s_asg_id                  = {{ module.nsg.k8s_asg_id }}
+  k8s_vm_nsg_id               = {{ module.nsg.k8s_vm_nsg_id }}
+  k8s_private_subnet_offset   = {{ k8s_private_subnet_offset }}
+  public_subnet_offset        = {{ public_subnet_offset }} 
+}
+
+module "nsg" {
+  source              = "../../modules/security_groups"
+  project_name        = {{ project_name }}
+  environment         = {{ environment }}
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+  source_bastion_ip   = {{ source_bastion_ip }}
+  tags                = {{ tags }}
+}
+
+module "bastion" {
+  source                                = "../../modules/bastion"
+  project_name                          = {{ project_name }}
+  resource_group_name                   = {{ resource_group_name }}
+  location                              = {{ location }}
+  environment                           = {{ environment }}
+  bastion_nsg_id                        = {{ module.nsg.bastion_nsg_id }}
+  bastion_asg_id                        = {{ module.nsg.bastion_asg_id }}
+  bastion_subnet_id                     = {{ module.vnet.public_subnet_id }}
+  image_offer                           = {{ image_offer }}
+  bastion_os_disk_size                  = {{ bastion_os_disk_size }}
+  bastion_admin_username                = {{ bastion_admin_username }}
+  image_publisher                       = {{ image_publisher }}
+  image_version                         = {{ image_version }}
+  image_sku                             = {{ image_sku }}
+  bastion_os_disk_storage_account_type  = {{ bastion_os_disk_storage_account_type }}
+  bastion_private_ip_address_allocation = {{ bastion_private_ip_address_allocation }}
+  bastion_public_ip_allocation_method   = {{ bastion_public_ip_allocation_method }}
+  bastion_public_ip_sku                 = {{ bastion_public_ip_sku }}
+  bastion_os_disk_caching               = {{ bastion_os_disk_caching }}
+  bastion_vm_size                       = {{ bastion_vm_size }}
+}
+
+
+module "agw" {
+  source                            = "../../modules/application_gateway"
+  project_name                      = {{ project_name }}
+  environment                       = {{ environment }}
+  location                          = {{ location }}
+  domain_name                       = {{ domain_name }}
+  resource_group_name               = {{ resource_group_name }}
+  tags                              = {{ tags }}
+  public_ip_sku                     = {{ public_ip_sku }}
+  availability_zones                = {{ availability_zones }}
+  public_ip_allocation_method       = {{ public_ip_allocation_method }}
+  app_gateway_subnet_id             = {{ module.vnet.app_gateway_subnet_id }}
+  azurerm_key_vault_id              = {{ module.kv.key_vault_id }}
+  appgateway_kv_identity_id         = {{ module.kv.kv_access_identity }} 
+  azurerm_key_vault_certificate_secret_id = {{ module.kv.certificate_secret_id }}
+}
+
+module "kv" {
+  source                      = "../../modules/key_vault"
+  project_name                = {{ project_name }}
+  environment                 = {{ environment }}
+  location                    = {{ location }}
+  resource_group_name         = {{ resource_group_name }}
+  availability_zones          = {{ availability_zones }}
+}
+
+module "k8s_common" {
+  source                            = "../../modules/kubernetes/common"
+  project_name                      = {{ project_name }}
+  environment                       = {{ environment }}
+}
+
+module "azure_netpp_files" {
+  source                                       = "../../modules/azure_netapp_files"
+  project_name                                 = {{ project_name }}
+  environment                                  = {{ environment }}
+  resource_group_name                          = {{ resource_group_name }}
+  location                                     = {{ location }}
+  netapp_pool_service_level                    = {{ netapp_pool_service_level }}
+  netapp_pool_size                             = {{ netapp_pool_size }} 
+}
+
+module "aks" {
+  source                           = "../../modules/kubernetes/aks"
+  project_name                     = {{ project_name }}
+  environment                      = {{ environment }}
+  location                         = {{ location }}
+  resource_group_name              = {{ resource_group_name }}
+  common_resource_group_name       = {{ common_resource_group_name }}
+  aks_subnet_id                    = {{ module.vnet.k8s_private_subnet }}
+  k8s_ssh_key                      = {{ module.k8s_common.ssh_public_key }}
+  app_gateway_id                   = {{ module.agw.application_gateway_id }}
+  tags = {{ tags }}
+}

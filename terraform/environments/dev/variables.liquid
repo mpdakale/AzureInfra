@@ -1,0 +1,179 @@
+####################### common variables #######################
+
+variable "project_name" {
+  description = "The project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment (e.g., dev, qa, prod)"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure location/region"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to deploy resources into."
+  type        = list(string)
+  default     = ["1", "2", "3"]
+}
+
+variable "domain_name" {
+  description = "Domain Name."
+  type        = string
+}
+
+variable "common_resource_group_name" {
+  description = "The name of the common resource group where acr repos are created"
+  type        = string
+}
+
+####################### vnet variables #######################
+
+variable "vnet_address_space" {
+  description = "The address space for the VNet"
+  type        = list(string)
+  default     = ["10.0.0.0/16"]
+}
+
+variable "subnet_prefix_length" {
+  description = "The prefix length for subnets"
+  type        = number
+  default     = 8
+}
+
+variable "private_subnet_offset" {
+  description = "Offset for private subnets in the address space"
+  type        = number
+  default     = 20
+}
+
+variable "public_subnet_offset" {
+  description = "Offset for public subnets in the address space"
+  type        = number
+  default     = 0
+}
+
+variable "app_gateway_subnet_offset" {
+  description = "Offset for the Application Gateway subnet index to ensure no overlap."
+  type        = number
+  default     = 40
+}
+
+variable "k8s_private_subnet_offset" {
+  description = "Offset for the k8s subnet index to ensure no overlap."
+  type        = number
+  default     = 30
+}
+
+variable "public_ip_allocation_method" {
+  description = "The allocation method for public IPs"
+  type        = string
+  default     = "Static"
+}
+
+variable "public_ip_sku" {
+  description = "The SKU for public IPs"
+  type        = string
+  default     = "Standard"
+}
+####################### bastion variables #######################
+
+variable "bastion_admin_username" {
+  description = "The admin username for the bastion host VM."
+  type        = string
+  default     = "ubuntu"
+}
+
+variable "bastion_vm_size" {
+  description = "The size of the virtual machine."
+  type        = string
+  default     = "Standard_B2ms"
+}
+
+variable "bastion_os_disk_size" {
+  description = "The size of the OS disk in GB."
+  type        = number
+  default     = 30
+}
+
+variable "image_publisher" {
+  description = "The publisher of the image."
+  type        = string
+  default     = "Canonical"
+}
+
+variable "image_offer" {
+  description = "The offer of the image."
+  type        = string
+  default     = "0001-com-ubuntu-server-jammy"
+}
+
+variable "image_sku" {
+  description = "The SKU of the image."
+  type        = string
+  default     = "22_04-lts-gen2"
+}
+
+variable "image_version" {
+  description = "The version of the image."
+  type        = string
+  default     = "latest"
+}
+
+variable "bastion_public_ip_allocation_method" {
+  type    = string
+  default = "Static"
+}
+
+variable "bastion_public_ip_sku" {
+  type    = string
+  default = "Standard"
+}
+
+variable "bastion_private_ip_address_allocation" {
+  type    = string
+  default = "Dynamic"
+}
+
+variable "bastion_os_disk_caching" {
+  type    = string
+  default = "ReadWrite"
+}
+
+variable "bastion_os_disk_storage_account_type" {
+  type    = string
+  default = "Standard_LRS"
+}
+
+####################### security_group variables #######################
+
+variable "source_bastion_ip" {
+  type = list(string)
+}
+
+####################### azure netpp files variables #######################
+
+variable "netapp_pool_size" {
+  description = "Size of the NetApp pool in TB"
+  type        = number
+  default     = 2
+}
+
+variable "netapp_pool_service_level" {
+  description = "Service level for the NetApp pool"
+  type        = string
+  default     = "Premium"
+}

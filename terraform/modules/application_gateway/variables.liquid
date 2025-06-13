@@ -1,0 +1,75 @@
+variable "project_name" {
+  description = "The project name"
+  type        = string
+}
+
+variable "environment" {
+  description = "The environment (e.g., dev, qa, prod)"
+  type        = string
+}
+
+variable "location" {
+  description = "The Azure location/region"
+  type        = string
+}
+
+variable "resource_group_name" {
+  description = "The name of the resource group"
+  type        = string
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to deploy resources into."
+  type        = list(string)
+}
+
+variable "domain_name" {
+  description = "Domain Name."
+  type        = string
+}
+
+variable "public_ip_allocation_method" {
+  description = "The allocation method for public IPs"
+  type        = string
+}
+
+variable "public_ip_sku" {
+  description = "The SKU for public IPs"
+  type        = string
+}
+
+variable "tags" {
+  description = "Tags to apply to all resources"
+  type        = map(string)
+}
+
+variable "app_gateway_subnet_id" {
+  description = "The IDs of the app gateway subnet"
+  type        = string
+}
+
+variable "azurerm_key_vault_id" {
+  description = "The ID of the key vault"
+  type        = string
+}
+
+variable "appgateway_kv_identity_id" {
+  description = "The ID key vault identity user"
+  type        = string
+}
+
+variable "azurerm_key_vault_certificate_secret_id" {
+  description = "The secret ID key vault ssl certificate"
+  type        = string
+}
+
+
+# variable "gateway_nic_id" {
+#   description = "The ID of the network interface associated with the gateway."
+#   type        = string
+# }
+
+# variable "gateway_nic_ip_configuration_name" {
+#   description = "The name of the IP configuration for the network interface associated with the gateway."
+#   type        = string
+# }

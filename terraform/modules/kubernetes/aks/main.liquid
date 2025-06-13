@@ -1,0 +1,68 @@
+data "azurerm_client_config" "current" {}
+
+# AKS Cluster
+resource "azurerm_kubernetes_cluster" "aks_cluster" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-aks-cluster"
+  location            = {{ location }}
+  resource_group_name = {{ resource_group_name }}
+  kubernetes_version  = "1.30.4"
+  dns_prefix          = "aksserverlessautoscaling"
+
+  # Default node pool (system node pool)
+  default_node_pool {
+    name                  = "system"
+    node_count            = 1
+    vm_size               = "Standard_DS2_v2"
+    vnet_subnet_id        = {{ aks_subnet_id }}
+    auto_scaling_enabled  = true
+    max_pods              = 110
+    min_count             = 1
+    max_count             = 40
+    type                  = "VirtualMachineScaleSets"
+    os_disk_size_gb       = 40
+    os_sku                = "Ubuntu"
+  }
+
+  ingress_application_gateway {
+    gateway_id = {{ app_gateway_id }}
+  }
+
+  linux_profile {
+    admin_username = "kube"
+    ssh_key {
+      key_data = {{ k8s_ssh_key }}
+    }
+  }
+
+  identity {
+    type = "SystemAssigned"
+  }
+
+  network_profile {
+    network_plugin  = "azure"
+    #pod_cidr        = "10.244.0.0/16"
+    service_cidr    = "10.96.0.0/12"
+    dns_service_ip = "10.96.0.10"
+
+  }
+
+  lifecycle {
+    ignore_changes = [
+      default_node_pool["node_count"]
+    ]
+  }
+  tags = merge(
+      {{ tags }},
+      {
+      },
+  )
+}
+
+# Assign ACRPull Role to the AKS Cluster's Managed Identity
+resource "azurerm_role_assignment" "aks_acr_role_assignment" {
+  principal_id         = azurerm_kubernetes_cluster.aks_cluster.identity[0].principal_id
+  role_definition_name = "AcrPull"
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${{{ common_resource_group_name }}}"
+}
+
+

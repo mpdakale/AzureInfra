@@ -1,0 +1,35 @@
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
+    azuread = {
+      source  = "hashicorp/azuread"
+      version = "~> 2.53.0"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.6"
+    }
+    cloudinit = {
+      source = "hashicorp/cloudinit"
+      version = "2.3.5"
+    }
+  }
+  backend "azurerm" {
+    resource_group_name  = "netappcdmt-tf-rg"
+    storage_account_name = "netappcdmttfstac"
+    container_name       = "netappcdmt-tf"
+    key                  = "dev/terraform.tfstate"
+    # resource_group_name  = "netappcdmt-tf-rg"
+    # storage_account_name = "netappcdmttfsa"
+    # container_name       = "netappcdmt-tf"
+    # key                  = "dev/terraform.tfstate"
+  }
+}
+
+provider "azurerm" {
+  features {}
+  resource_provider_registrations = "none"
+}

@@ -1,0 +1,143 @@
+data "azurerm_client_config" "current" {}
+
+# Virtual Machine Scale Set for Kubernetes Worker Nodes
+resource "azurerm_linux_virtual_machine_scale_set" "k8s_worker_vmss" {
+  name                            = "${{{ project_name }}}-${{{ environment }}}-k8s-workers"
+  location                        = {{ location }}
+  resource_group_name             = {{ resource_group_name }}
+  instances                       = {{ k8s_worker_instance_count }}
+  platform_fault_domain_count     = 5
+  single_placement_group          = false
+  zone_balance                    = true
+  #encryption_at_host_enabled      = true
+  computer_name_prefix            = "k8s-worker-${{{ environment }}}"
+  disable_password_authentication = true
+  zones                           = {{ availability_zones }}
+  admin_username                  = {{ k8s_worker_admin_username }}
+  sku                             = {{ k8s_worker_vm_size }}
+
+  # OS Disk Configuration
+  os_disk {
+    caching              = {{ k8s_worker_os_disk_caching }}
+    storage_account_type = {{ k8s_worker_os_disk_storage_account_type }}
+    disk_size_gb         = {{ k8s_worker_os_disk_size }}
+  }
+
+  # Dynamic Network Interface Configuration based on subnet IDs
+  dynamic "network_interface" {
+    for_each = {{ k8s_worker_subnet_ids }}  # Iterate over subnet IDs
+    content {
+      name    = "${{{ project_name }}}-${{{ environment }}}-worker-nic-${network_interface.key + 1}"
+      network_security_group_id = {{ k8s_vm_nsg_id }}
+      primary = network_interface.key == 0 ? true : false  # Primary NIC for first subnet
+
+      ip_configuration {
+        name                                         = "${{{ project_name }}}-${{{ environment }}}-ipconfig-${network_interface.key + 1}"
+        subnet_id                                    = network_interface.value
+        application_gateway_backend_address_pool_ids = {{ application_gateway_backend_address_pool_ids }}
+        application_security_group_ids               = [ {{ k8s_application_security_group_ids }} ]
+        primary = true
+      }
+    }
+  }
+
+  admin_ssh_key {
+    username = {{ k8s_worker_admin_username }}
+    public_key = {{ k8s_worker_public_key }}
+  }
+
+  # Source Image Reference for Ubuntu
+  source_image_reference {
+    publisher = {{ k8s_worker_image_publisher }}
+    offer     = {{ k8s_worker_image_offer }}
+    sku       = {{ k8s_worker_image_sku }}
+    version   = {{ k8s_worker_image_version }}
+  }
+
+  # Identity (Managed Identity)
+  identity {
+    type         = "SystemAssigned"
+  }
+
+  # Tags for Resource Management
+  tags = {
+    environment = {{ environment }}
+    project     = {{ project_name }}
+  }
+  
+  lifecycle {
+    ignore_changes = [instances]
+  }
+
+  depends_on = [ {{ k8s_worker_subnet_ids }} ]
+
+}
+
+# Autoscaling Configuration
+resource "azurerm_monitor_autoscale_setting" "k8s_worker_autoscale" {
+  name                = "${{{ project_name }}}-${{{ environment }}}-autoscale"
+  resource_group_name = {{ resource_group_name }}
+  location            = {{ location }}
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.k8s_worker_vmss.id
+
+  profile {
+    name = "cpu-autoscale"
+    capacity {
+      minimum = {{ k8s_worker_instance_count }}
+      maximum = {{ k8s_worker_max_instance_count }}
+      default = {{ k8s_worker_instance_count }}
+    }
+
+    # Scale up when CPU usage is greater than 60%
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.k8s_worker_vmss.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = 75
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT5M"
+      }
+    }
+
+    # Scale down when CPU usage is less than 30%
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.k8s_worker_vmss.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 30
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT5M"
+      }
+    }
+  }
+
+  tags = {
+    environment = {{ environment }}
+  }
+}
+
+resource "azurerm_role_assignment" "vmss_acr_role_assignment" {
+  principal_id         = azurerm_linux_virtual_machine_scale_set.k8s_worker_vmss.identity[0].principal_id
+  role_definition_name = "AcrPull"
+  scope                = "/subscriptions/${data.azurerm_client_config.current.subscription_id}/resourceGroups/${{{ common_resource_group_name }}}"
+}

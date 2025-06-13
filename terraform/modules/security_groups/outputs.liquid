@@ -1,0 +1,31 @@
+output "bastion_nsg_id" {
+  description = "ID of the Bastion NSG"
+  value       = azurerm_network_security_group.bastion_nsg.id
+}
+
+output "k8s_vm_nsg_id" {
+  description = "ID of the K8s VM NSG"
+  value       = azurerm_network_security_group.k8s_vm_sg.id
+}
+
+output "bastion_asg_id" {
+  description = "The ID of the Application Security Group for Bastion."
+  value       = azurerm_application_security_group.bastion_asg.id
+}
+
+# Output for Kubernetes ASG
+output "k8s_asg_id" {
+  description = "The ID of the Application Security Group for Kubernetes."
+  value       = azurerm_application_security_group.vm_k8s_asg.id
+}
+
+# Output for Application Gateway ASG
+output "app_gateway_asg_id" {
+  description = "The ID of the Application Security Group for Application Gateway."
+  value       = azurerm_application_security_group.app_gateway_asg.id
+}
+
+output "app_gateway_nsg_id" {
+  description = "The ID of the NSG for Applicaiton Gateway."
+  value       = azurerm_network_security_group.app_gateway_nsg.id
+}

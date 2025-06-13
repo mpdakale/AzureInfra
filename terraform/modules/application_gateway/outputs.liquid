@@ -1,0 +1,10 @@
+# output "app_gateway_backend_pool_ids" {
+#   description = "The IDs of the backend address pools in the Application Gateway."
+#   value = [
+#     for pool in azurerm_application_gateway.main.backend_address_pool : pool.id
+#   ]
+# }
+
+output "application_gateway_id" {
+  value = azurerm_application_gateway.main.id
+}
